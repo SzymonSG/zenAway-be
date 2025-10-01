@@ -1,2 +1,2 @@
 # zenAway-be
-Hack Yeah 2025 "Travel Radar"
+Hack Yeah 2025 Backend logic - be
