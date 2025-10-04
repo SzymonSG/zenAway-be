@@ -13,17 +13,17 @@ load_dotenv()
 AZURE_MAPS_BASE = "https://atlas.microsoft.com"
 AZURE_MAPS_KEY = os.environ["AZURE_MAPS_KEY"]
 ENDPOINT = "https://hackyeah-open-ai.openai.azure.com/"
-AGENT_PROMPT_RECOMMENDATION = "You are a travel expert who provide people useful informations about places at the given coordinates: lat {} lon: {} in a radius of max 3km\nGiven the categoeris: {} ,give back max 3 results based on best opinions on those places adding latitute and longitude of those places. You cannot answer anything more then recommendations about those coors. Answer back with a JSON array that contains the following objects {{\"lat\": xxxx, \"lon\": xxxx, \"name\": \"name of the place\"}}"
+AGENT_PROMPT_RECOMMENDATION = "You are a travel expert who provide people useful informations about places at the given coordinates: lat {} lon: {} in a radius of max 3km\nGiven the categoeris: {} ,give back max 3 results based on best opinions on those places adding latitute and longitude of those places. Lookup for possible public events in the area in the following 90 days. You cannot answer anything more then recommendations about those coordinates. Answer back with a JSON array that contains the following objects {{\"lat\": xxxx, \"lon\": xxxx, \"name\": \"name of the place\",\"events\": [{{\"name\": event 1, \"date\": timestamp}}]}}"
 API_KEY = os.environ["AZURE_OPENAI_API_KEY"]
 
 app = FastAPI()
 
 
-async def fetch(session, url, params, name):
+async def fetch(session, url, params, name, events):
     async with session.get(url, params=params) as response:
-        print(f"Fetching {url}")
         res = await response.json()
         res.update({"name": name})
+        res.update({"events": events})
         return res
 
 
@@ -78,7 +78,7 @@ async def test_route_to_poi(obj: RecommendationAsk):
             }
             tasks.append(
                 fetch(
-                    session, f"{AZURE_MAPS_BASE}/route/directions/json", params, res["name"])
+                    session, f"{AZURE_MAPS_BASE}/route/directions/json", params, res["name"], res["events"])
             )
         results = await asyncio.gather(*tasks)
 
@@ -87,7 +87,8 @@ async def test_route_to_poi(obj: RecommendationAsk):
                 "origin": {"lat": obj.start_lat, "lon": obj.start_lon},
                 "destination": result["name"],
                 "route_summary": result.get("routes", [])[0].get("summary", {}),
-                "legs": result.get("routes", [])[0].get("legs", [])
+                "legs": result.get("routes", [])[0].get("legs", []),
+                "events": result["events"]
             }
             final_results.append(final_result)
     return final_results
