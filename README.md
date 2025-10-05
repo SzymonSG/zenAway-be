@@ -10,6 +10,11 @@ This is a **FastAPI application built with Python 3.13**, designed as a cloud-ba
 
 The app serves as a **recommendation engine**, allowing users to choose thematic categories (e.g. culture, music, creativity) or enter custom preferences to discover nearby activities and events.
 
+## Frontend layer
+
+## 🧩 Angular Application Overview
+
+The Angular application features a **customizable user interface** and **dynamically generated routes** based on **real-time data** such as traffic incidents, congestion, and other location-based events. It integrates seamlessly with Azure Maps to provide users with up-to-date information that enhances navigation and leisure planning.
 ---
 
 ## ⚙️ Local Setup (Windows, Python 3.13)
