@@ -14,7 +14,7 @@ The app serves as a **recommendation engine**, allowing users to choose thematic
 
 ## 🧩 Angular Application Overview
 
-The Angular application features a **customizable user interface** and **dynamically generated routes** based on **real-time data** such as traffic incidents, congestion, and other location-based events. It integrates seamlessly with Azure Maps to provide users with up-to-date information that enhances navigation and leisure planning.
+The Angular application features a **customizable user interface** and **dynamically generated routes** based on **real-time data** such as traffic incidents, congestion, and other location-based on choosen/provided category. It integrates seamlessly with Azure Maps to provided users with up-to-date information that enhances navigation and leisure planning.
 ---
 
 ## ⚙️ Local Setup (Windows, Python 3.13)
