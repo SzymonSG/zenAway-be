@@ -5,6 +5,7 @@ import os
 import aiohttp
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from openai import AzureOpenAI
 from pydantic import BaseModel
 
@@ -13,10 +14,22 @@ load_dotenv()
 AZURE_MAPS_BASE = "https://atlas.microsoft.com"
 AZURE_MAPS_KEY = os.environ["AZURE_MAPS_KEY"]
 ENDPOINT = "https://hackyeah-open-ai.openai.azure.com/"
-AGENT_PROMPT_RECOMMENDATION = "You are a calmcation travel expert who provide people useful informations about places at the given coordinates: lat {} lon: {} in a radius of max 3km\nGiven the calmcation thoughts from the user: {} and the mood user has provided, which is {},give back max 3 results based on best opinions on those places adding latitute and longitude of those places. Lookup for possible public events in the area in the following 90 days. You cannot answer anything more then recommendations about those coordinates. Answer back with a JSON array that contains the following objects {{\"lat\": xxxx, \"lon\": xxxx, \"name\": \"name of the place\",\"events\": [{{\"name\": event 1, \"date\": timestamp}}]}}"
+AGENT_PROMPT_RECOMMENDATION = "You are a calmcation travel expert who provide people useful travel informations. The radius area for places of interest is maximum 3km from the destination place the user wants to go., you must not provide any place outside the 3km radius of the destination coordinates provided. Give back max 3 results ONLY within that radius based on best opinions on those places adding latitute and longitude of those places. Lookup for possible public events in the area in the following 90 days from today. You cannot answer anything more then recommendations about those coordinates. Answer back with a JSON array that contains the following objects {{\"lat\": xxxx, \"lon\": xxxx, \"name\": \"name of the place\",\"events\": [{{\"name\": event 1, \"date\": timestamp}}]}}"
 API_KEY = os.environ["AZURE_OPENAI_API_KEY"]
 
 app = FastAPI()
+origins = [
+    "http://localhost",
+    "http://localhost:4200",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 async def fetch(session, url, params, name, events):
@@ -54,7 +67,7 @@ async def test_route_to_poi(obj: RecommendationAsk):
             },
             {
                 "role": "user",
-                "content": f"I am interested into this place: longitude: {obj.lon} - latitude: {obj.lat}",
+                "content": f"I'd like to travel to this coordinates - longitude: {obj.lon} - latitude: {obj.lat}, My mood is {obj.mood}, pick places that are aligned with my actual mood. Those places should be following my calmcation thoughts, which are {obj.calmcation}",
             }
         ],
         max_completion_tokens=16384,
@@ -73,9 +86,9 @@ async def test_route_to_poi(obj: RecommendationAsk):
             params = {
                 "api-version": "1.0",
                 "subscription-key": AZURE_MAPS_KEY,
-                "query": f"{obj.lat},{obj.lon}:{res['lat']},{res['lon']}",
+                "query": f"{obj.start_lat},{obj.start_lon}:{res['lat']},{res['lon']}",
                 "travelMode": "car",
-                "traffic": "true"
+                "traffic": "false"
             }
             tasks.append(
                 fetch(
